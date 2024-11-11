@@ -7,6 +7,8 @@ export const Dashboard = ()=> {
 
     const [loading, setLoading] = useState(true)
 
+    
+
     const [dataChart, setDataChart] = useState(
         {
             status: [
@@ -32,10 +34,6 @@ export const Dashboard = ()=> {
           }
     )
 
-      const [dataProfiles, setDataProfiles] = useState([
-        { name: 'Ativos', value: 4 },
-        { name: 'Inativos', value: 12 },
-      ])
 
     useEffect(()=>{
         const fetchData = async () => {
@@ -48,7 +46,7 @@ export const Dashboard = ()=> {
               console.error('Erro ao carregar os dados do usuário');
             }
           };
-      
+          setLoading(true)
           fetchData();
     }, [])
 

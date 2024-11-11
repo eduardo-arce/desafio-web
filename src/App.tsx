@@ -1,5 +1,5 @@
 
-import { DashboardPieChart, NewUserForm, UserTable, UserComponent, Dashboard } from './component'
+import { NewUserForm, UserTable, Dashboard } from './component'
 import { LoginForm } from './component/LoginForm'
 
 
@@ -20,9 +20,6 @@ function App() {
         <div className="col-6">
           <LoginForm/>
         </div>
-        <div className="col-6">
-          <UserComponent/>
-        </div>   
       </div> 
     
   )

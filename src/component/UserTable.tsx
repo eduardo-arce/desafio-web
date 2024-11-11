@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { DataTable, DataTableRowEditCompleteEvent } from 'primereact/datatable';
 import { Column, ColumnEditorOptions } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
-import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
 import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
 import { LoadingSpinner } from './LoadingSpinner';
-import { getTableData } from '../service/UserService';
+import { deleteUser, getTableData, IUserPUT, updateUser } from '../service/UserService';
+import { Button } from 'primereact/button';
 
 interface UserData {
     id: number;
@@ -85,22 +85,38 @@ export const UserTable=() => {
     const [first, setFirst] = useState<number>(0);
     const [rows, setRows] = useState<number>(5);
     const [loading, setLoading] = useState(true)
+    const [loadingTable, setLoadingTable] = useState(true)
 
     const onPageChange = (event: PaginatorPageChangeEvent) => {
-        setFirst(event.first);
+        setFirst(event.page);
         setRows(event.rows);
         //TODDO acionar paginação;
     };
+    
 
     const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
-        let _products = [...users.data];
-        let { newData, index } = e;
+        
+        let { newData } = e;
 
-        console.log({newData})
-
-        _products[index] = newData as UserData;
-
-        setUsers({...users, data: _products});
+        const fetchData = async () => {
+          try {
+            const data = await getTableData(first, rows);
+            setUsers(data)
+            setLoading(false)
+            setLoadingTable(false)
+          } catch (error) {
+              setLoading(false)
+              setLoadingTable(false)
+            console.error('Erro ao carregar os dados do usuário');
+          }
+        };
+        setLoadingTable(true)
+        updateUser(newData as IUserPUT).then(()=> {
+          
+          fetchData();
+        }).catch(()=>{
+          setLoadingTable(false)
+        })
     };
 
     const textEditor = (options: ColumnEditorOptions) => {
@@ -152,8 +168,39 @@ export const UserTable=() => {
         return <Tag value={rowData.status?"ATIVO": "INATIVO"} severity={rowData.status?'success':'warning'}></Tag>;
     };
 
+    const actionBodyTemplate = (rowData: UserData) => {
+      return (
+          <Button
+              icon="pi pi-trash"
+              className="p-button-danger"
+              onClick={() => {
+                const fetchData = async () => {
+                  try {
+                    const data = await getTableData(first, rows);
+                    setUsers(data)
+                    setLoading(false)
+                    setLoadingTable(false)
+                  } catch (error) {
+                      setLoading(false)
+                      setLoadingTable(false)
+                    console.error('Erro ao carregar os dados do usuário');
+                  }
+                };
+                setLoadingTable(true)
+                deleteUser(rowData).then(()=>{
+                  fetchData()
+                }).catch(()=> {
+                  setLoadingTable(false)
+                })
 
-    const allowEdit = (rowData: UserData) => {
+
+              }}
+          />
+      );
+  };
+
+
+    const allowEdit = () => {
         return true;
     };
 
@@ -161,17 +208,19 @@ export const UserTable=() => {
     useEffect(()=>{
         const fetchData = async () => {
             try {
-              const data = await getTableData();
+              const data = await getTableData(first, rows);
               setUsers(data)
               setLoading(false)
+              setLoadingTable(false)
             } catch (error) {
                 setLoading(false)
+                setLoadingTable(false)
               console.error('Erro ao carregar os dados do usuário');
             }
           };
-      
+          setLoadingTable(true)
           fetchData();
-    }, [])
+    }, [first, rows])
 
     if(loading){
         return  <LoadingSpinner/>
@@ -181,9 +230,11 @@ export const UserTable=() => {
         <div className="card p-fluid">
             <DataTable 
             value={users?.data?? []}
+            loading={loadingTable}
         
             paginator={false}
              editMode="row" 
+             
              dataKey="email"
               onRowEditComplete={onRowEditComplete} 
               >
@@ -222,6 +273,7 @@ export const UserTable=() => {
                 <Column rowEditor={allowEdit}
                  headerStyle={{ width: '10%', minWidth: '8rem' }}
                   bodyStyle={{ textAlign: 'center' }}/>
+                  <Column body={actionBodyTemplate} header="Actions" style={{ width: '10%' }} />
             </DataTable>
             <Paginator first={users?.current-1} rows={users?.pageSize} totalRecords={users?.totalItems} rowsPerPageOptions={[1,5,10, 20, 30]} onPageChange={onPageChange} />
         </div>

@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { PieChart, Pie, Sector, Cell, ResponsiveContainer, SectorProps, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Sector, Cell, ResponsiveContainer, SectorProps, Legend } from 'recharts';
 
 interface DataItem {
   name: string;
@@ -67,7 +67,7 @@ const renderActiveShape = (props: RenderActiveShapeProps) => {
       <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
       <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#999">{`${(percent * 100).toFixed(2)}%`}</text>
       <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
-        {`Usuários ${name}: ${value}`}
+        {`${name}: ${value}`}
       </text>
     </g>
   );
@@ -96,12 +96,12 @@ export const DashboardPieChart: FC<DashboardPieChartProps> = ({ data, colors, ti
             dataKey="value"
             onMouseEnter={onPieEnter}
           >
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}
           </Pie>
-          <Legend /> {/* Legenda para mostrar as cores */}
-          <Tooltip />
+          <Legend /> 
+          
         </PieChart>
       </ResponsiveContainer>
     </div>

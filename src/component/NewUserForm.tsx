@@ -1,20 +1,22 @@
-import React from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { InputSwitch } from 'primereact/inputswitch';
+import { registerUser, UserRegistrationData } from '../service/UserService';
 
 export const NewUserForm = () => {
   const { control, handleSubmit, getValues } = useForm();
+  const [enviando, setEnviando] = useState(false)
 
   const onSubmit = (data:any) => {
     console.log(data);
   };
 
   const profileOptions = [
-    { label: 'Admin', value: 'admin' },
-    { label: 'Comum', value: 'common' },
+    { label: 'Admin', value: 'Admin' },
+    { label: 'Comum', value: 'Comum' },
   ];
 
   return (
@@ -91,8 +93,14 @@ export const NewUserForm = () => {
       </div>
 
       <div className="col-12 text-center p-3">
-        <Button label="Submit" type="submit" onClick={() => {
-            console.log(getValues())
+        <Button loading={enviando} label="Submit" type="submit" onClick={() => {
+            setEnviando(true)
+            registerUser(getValues() as UserRegistrationData  ).then(()=>{
+              setEnviando(false)
+            }).catch(e=>{
+              console.error(e)
+              setEnviando(false)
+            })
         }} />
       </div>
     </div>

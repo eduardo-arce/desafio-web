@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getUserData } from '../service/UserService';
 
 export const UserComponent = () => {
