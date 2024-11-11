@@ -7,117 +7,100 @@ import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { Tag } from 'primereact/tag';
 import { Paginator, PaginatorPageChangeEvent } from 'primereact/paginator';
+import { LoadingSpinner } from './LoadingSpinner';
+import { getTableData } from '../service/UserService';
 
 interface UserData {
+    id: number;
     firstName: string;
     lastName: string;
     email: string;
     password: string;
-    profile: "common" | "admin"; // definindo o tipo do perfil com valores permitidos
+    profile: "Admin" | "Comum";
     status: boolean;
   }
-  const mockUserData: UserData[] = [
-    {
-      firstName: "FirstName1",
-      lastName: "LastName1",
-      email: "user1@example.com",
-      password: "password1",
-      profile: "common",
-      status: true,
-    },
-    {
-      firstName: "FirstName2",
-      lastName: "LastName2",
-      email: "user2@example.com",
-      password: "password2",
-      profile: "common",
-      status: false,
-    },
-    {
-      firstName: "FirstName3",
-      lastName: "LastName3",
-      email: "user3@example.com",
-      password: "password3",
-      profile: "common",
-      status: true,
-    },
-    {
-      firstName: "FirstName4",
-      lastName: "LastName4",
-      email: "user4@example.com",
-      password: "password4",
-      profile: "common",
-      status: false,
-    },
-    {
-      firstName: "FirstName5",
-      lastName: "LastName5",
-      email: "user5@example.com",
-      password: "password5",
-      profile: "common",
-      status: true,
-    },
-    {
-      firstName: "FirstName6",
-      lastName: "LastName6",
-      email: "user6@example.com",
-      password: "password6",
-      profile: "common",
-      status: false,
-    },
-    {
-      firstName: "FirstName7",
-      lastName: "LastName7",
-      email: "user7@example.com",
-      password: "password7",
-      profile: "common",
-      status: true,
-    },
-    {
-      firstName: "FirstName8",
-      lastName: "LastName8",
-      email: "user8@example.com",
-      password: "password8",
-      profile: "common",
-      status: false,
-    },
-    {
-      firstName: "FirstName9",
-      lastName: "LastName9",
-      email: "user9@example.com",
-      password: "password9",
-      profile: "admin",
-      status: true,
-    },
-    {
-      firstName: "FirstName10",
-      lastName: "LastName10",
-      email: "user10@example.com",
-      password: "password10",
-      profile: "admin",
-      status: false,
-    },
-  ];
+  interface PaginatedUsers {
+    current: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    data: UserData[];
+  }
+  const mockUserData: PaginatedUsers= {
+    "current": 0,
+    "pageSize": 5,
+    "totalItems": 24,
+    "totalPages": 5,
+    "data": [
+      {
+        "id": 1,
+        "firstName": "Admin",
+        "lastName": "Admin",
+        "email": "admin",
+        "password": "admin",
+        "profile": "Admin",
+        "status": true
+      },
+      {
+        "id": 3,
+        "firstName": "Ana",
+        "lastName": "Pereira",
+        "email": "ana.pereira@yahoo.com",
+        "password": "abcd",
+        "profile": "Admin",
+        "status": true
+      },
+      {
+        "id": 6,
+        "firstName": "Juliana",
+        "lastName": "Almeida",
+        "email": "juliana.almeida@outlook.com",
+        "password": "pass1234",
+        "profile": "Admin",
+        "status": true
+      },
+      {
+        "id": 7,
+        "firstName": "Ricardo",
+        "lastName": "Costa",
+        "email": "ricardo.costa@gmail.com",
+        "password": "1234abcd",
+        "profile": "Comum",
+        "status": true
+      },
+      {
+        "id": 8,
+        "firstName": "Mariana",
+        "lastName": "Lima",
+        "email": "mariana.lima@yahoo.com",
+        "password": "senha567",
+        "profile": "Admin",
+        "status": true
+      }
+    ]
+  }
 export const UserTable=() => {
-    const [products, setProducts] = useState<UserData[]>(mockUserData);
+    const [users, setUsers] = useState<PaginatedUsers>(mockUserData);
     const [statuses] = useState<{label:string, value: boolean}[]>([{label:'ATIVO', value: true},{label:'INATIVO', value: false}]);
     const [first, setFirst] = useState<number>(0);
     const [rows, setRows] = useState<number>(5);
+    const [loading, setLoading] = useState(true)
 
     const onPageChange = (event: PaginatorPageChangeEvent) => {
         setFirst(event.first);
         setRows(event.rows);
+        //TODDO acionar paginação;
     };
 
     const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
-        let _products = [...products];
+        let _products = [...users.data];
         let { newData, index } = e;
 
         console.log({newData})
 
         _products[index] = newData as UserData;
 
-        setProducts(_products);
+        setUsers({...users, data: _products});
     };
 
     const textEditor = (options: ColumnEditorOptions) => {
@@ -143,7 +126,7 @@ export const UserTable=() => {
         );
     };
     const profileEditor = (options: ColumnEditorOptions) => {
-        const optionsDropdown = [{label:'common', value: 'common'},{label:'admin', value: 'admin'}]
+        const optionsDropdown = [{label:'Comum', value: 'Comum'},{label:'Admin', value: 'Admin'}]
         return (
             <Dropdown
                 value={options.value}
@@ -153,18 +136,15 @@ export const UserTable=() => {
                 onChange={(e: DropdownChangeEvent) => options.editorCallback!(e.value)}
                 placeholder="Select a Status"
                 itemTemplate={(option) => {
-                    return <Tag value={option.label} severity={option.value==="admin"?'info':'secondary'}></Tag>;
+                    return <Tag value={option.label} severity={option.value==="Admin"?'info':'secondary'}></Tag>;
                 }}
             />
         );
     };
 
-    const nameBodyTemplate = (rowData: UserData) => {
-        return <Tag value={`${rowData.firstName} ${rowData.lastName}` } severity={"danger"}></Tag>;
-    };
 
     const profileBodyTemplate = (rowData: UserData) => {
-        return <Tag value={rowData.profile} severity={rowData.profile==="admin"?"info": "secondary"}></Tag>;
+        return <Tag value={rowData.profile} severity={rowData.profile==="Admin"?"info": "secondary"}></Tag>;
     };
 
 
@@ -177,10 +157,30 @@ export const UserTable=() => {
         return true;
     };
 
+    
+    useEffect(()=>{
+        const fetchData = async () => {
+            try {
+              const data = await getTableData();
+              setUsers(data)
+              setLoading(false)
+            } catch (error) {
+                setLoading(false)
+              console.error('Erro ao carregar os dados do usuário');
+            }
+          };
+      
+          fetchData();
+    }, [])
+
+    if(loading){
+        return  <LoadingSpinner/>
+    }
+
     return (
         <div className="card p-fluid">
             <DataTable 
-            value={products.slice(first,first+rows)}
+            value={users?.data?? []}
         
             paginator={false}
              editMode="row" 
@@ -223,7 +223,7 @@ export const UserTable=() => {
                  headerStyle={{ width: '10%', minWidth: '8rem' }}
                   bodyStyle={{ textAlign: 'center' }}/>
             </DataTable>
-            <Paginator first={first} rows={rows} totalRecords={mockUserData.length} rowsPerPageOptions={[1,5,10, 20, 30]} onPageChange={onPageChange} />
+            <Paginator first={users?.current-1} rows={users?.pageSize} totalRecords={users?.totalItems} rowsPerPageOptions={[1,5,10, 20, 30]} onPageChange={onPageChange} />
         </div>
     );
 }

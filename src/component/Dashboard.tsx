@@ -1,110 +1,76 @@
-import React, { FC } from 'react';
-import { PieChart, Pie, Sector, Cell, ResponsiveContainer, SectorProps } from 'recharts';
+import { useEffect, useState } from "react"
+import {DashboardPieChart} from "./DashboardPieChart"
+import { LoadingSpinner } from "./LoadingSpinner"
+import { getDashboardData } from "../service/UserService"
 
-interface DataItem {
-  name: string;
-  value: number;
-}
+export const Dashboard = ()=> {
 
+    const [loading, setLoading] = useState(true)
 
+    const [dataChart, setDataChart] = useState(
+        {
+            status: [
+              {
+                "name": "Ativo",
+                "value": 2
+              },
+              {
+                "name": "Inativo",
+                "value": 1
+              }
+            ],
+            profile: [
+              {
+                "name": "Admin",
+                "value": 1
+              },
+              {
+                "name": "Comum",
+                "value": 2
+              }
+            ]
+          }
+    )
 
-const COLORS = ['#00C49F', '#FF8042', '#FFBB28', '#FF8042'];
-
-interface RenderActiveShapeProps extends SectorProps {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  innerRadius: number;
-  outerRadius: number;
-  startAngle: number;
-  endAngle: number;
-  fill: string;
-  payload: DataItem;
-  percent: number;
-  value: number;
-  name: string
-}
-
-const renderActiveShape = (props: RenderActiveShapeProps) => {
-  const RADIAN = Math.PI / 180;
-  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value, name } = props;
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 10) * cos;
-  const sy = cy + (outerRadius + 10) * sin;
-  const mx = cx + (outerRadius + 30) * cos;
-  const my = cy + (outerRadius + 30) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? 'start' : 'end';
-
-console.log({props})
-  return (
-    <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
-        {payload.name}
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 6}
-        outerRadius={outerRadius + 10}
-        fill={fill}
-      />
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#999">{`${(percent * 100).toFixed(2)}%`}</text>
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
-        {`Usuários ${name}: ${value}`}
-      </text>
-    </g>
-  );
-};
-
-export const Dashboard: FC = () => {
-    const data: DataItem[] = [
+      const [dataProfiles, setDataProfiles] = useState([
         { name: 'Ativos', value: 4 },
         { name: 'Inativos', value: 12 },
-      ];
-  const [activeIndex, setActiveIndex] = React.useState<number>(0);
+      ])
 
-  const onPieEnter = (_: unknown, index: number) => {
-    setActiveIndex(index);
-  };
+    useEffect(()=>{
+        const fetchData = async () => {
+            try {
+              const data = await getDashboardData();
+              setDataChart(data)
+              setLoading(false)
+            } catch (error) {
+                setLoading(false)
+              console.error('Erro ao carregar os dados do usuário');
+            }
+          };
+      
+          fetchData();
+    }, [])
 
-  return (
-    <ResponsiveContainer width="100%" height={400}>
-      <PieChart width={400} height={400}>
-        <Pie
-          activeIndex={activeIndex}
-          //@ts-ignore
-          activeShape={renderActiveShape}
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={80}
-          dataKey="value"
-          onMouseEnter={onPieEnter}
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-      </PieChart>
-    </ResponsiveContainer>
-  );
-};
+    if(loading){
+        return  <LoadingSpinner/>
+    }
 
-export default Dashboard;
+
+    return (
+        <div className="flex row">
+          <DashboardPieChart
+           data={dataChart.status}
+          colors={['#00C49F', '#FF8042', '#FFBB28', '#FF8042']}
+          title="Distribuição por Status"
+          
+          />          
+          <DashboardPieChart
+           data={dataChart.profile}
+          colors={['#00C49F', '#FF8042', '#FFBB28', '#FF8042']}
+          title="Distribuição por Profile"
+          
+          />          
+        </div>
+    )
+}

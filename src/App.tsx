@@ -1,5 +1,5 @@
 
-import { Dashboard, NewUserForm, UserTable, UserComponent } from './component'
+import { DashboardPieChart, NewUserForm, UserTable, UserComponent, Dashboard } from './component'
 import { LoginForm } from './component/LoginForm'
 
 
