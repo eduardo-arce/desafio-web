@@ -1,3 +1,4 @@
+import { LoginFormInputs } from '../component/LoginForm';
 import apiClient from '../config/axios';
 
 export const getUserData = async () => {
@@ -79,6 +80,20 @@ export const updateUser = async (payload: IUserPUT) => {
 export const deleteUser = async (payload: IUserPUT) => {
   try {
     const response = await apiClient.delete(`/User/Delete/${payload.id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao registrar usuário', error);
+    throw error;
+  }
+};
+
+
+export const loginUser = async (payload: LoginFormInputs) => {
+  try {
+    const response = await apiClient.post('/Login', {
+      email: payload.username,
+      password: payload.password
+    });
     return response.data;
   } catch (error) {
     console.error('Erro ao registrar usuário', error);

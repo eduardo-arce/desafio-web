@@ -1,26 +1,30 @@
 
-import { NewUserForm, UserTable, Dashboard } from './component'
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom'
+import {  Home } from './component'
 import { LoginForm } from './component/LoginForm'
+import { ProtectedRoute } from './component/ProtectedRoute'
 
 
 function App() {
   return (
     
-      <div className="grid">
-        <div className="col-6">
-          <Dashboard/>          
-        </div>
-        <div className="col-6">
-          <UserTable/>
-        </div>
-        <div className="col-6">
-          <NewUserForm/>
-        </div>
-        
-        <div className="col-6">
-          <LoginForm/>
-        </div>
-      </div> 
+    <Router>
+      <Routes>
+          <Route path="/login" element={<LoginForm />} />
+
+          <Route
+              path="/"
+              element={
+                  <ProtectedRoute>
+                      <Home />
+                  </ProtectedRoute>
+              }
+          />
+
+          {/* Rota para outras páginas (404 ou NotFound) */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Router>
     
   )
 }
